@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>姜不應的鼠鼠之家</title>
+<style>
+:root{--green:#78966e;--pale:#f3f5ed;--ink:#394438;--line:#e2e8dc}
+*{box-sizing:border-box}
+body{margin:0;background:#e9eee5;color:var(--ink);font-family:"Microsoft JhengHei",sans-serif}
+.app{width:min(920px,96%);height:94vh;min-height:580px;margin:3vh auto;background:#fffdf8;border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 38px #31452d20}
+header{display:flex;align-items:center;gap:13px;padding:14px 20px;background:var(--green);color:white}
+.avatar{width:58px;height:58px;flex:none;border-radius:50%;background:#fff7e8;display:grid;place-items:center;overflow:hidden}
+.avatar svg{width:52px;height:52px}
+header h1{font-size:19px;margin:0}
+header p{font-size:12px;margin:5px 0 0;opacity:.9}
+.status{margin-left:auto;font-size:11px;border-radius:20px;background:#ffffff25;padding:7px 10px}
+.status.error{background:#9a4e43}
+.chat{flex:1;overflow:auto;padding:20px;background-color:#fbfcf8;background-image:radial-gradient(#dce6d5 1px,transparent 1px);background-size:19px 19px}
+.msg{display:flex;gap:9px;margin:0 0 18px;align-items:flex-start}
+.msg.user{flex-direction:row-reverse}
+.mini{width:38px;height:38px;flex:none;border-radius:50%;background:#fff4df;display:grid;place-items:center;overflow:hidden}
+.mini svg{width:35px;height:35px}
+.usericon{background:#e3eddf;font-size:19px}
+.wrap{max-width:78%}
+.bubble{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.75;font-size:14px;padding:11px 15px;border-radius:15px;background:white;border:1px solid var(--line)}
+.bot .bubble{border-top-left-radius:4px}
+.user .bubble{background:#dcebd5;border-color:#dcebd5;border-top-right-radius:4px}
+.meta{font-size:10px;color:#9aa594;margin-top:4px}
+.user .meta{text-align:right}
+.speak{border:0;background:none;color:#84977c;font-size:11px;cursor:pointer;padding:5px 0}
+.suggestions{display:flex;gap:7px;flex-wrap:wrap;padding:10px 14px;background:#f7f8f2;border-top:1px solid var(--line)}
+.suggestions button{border:1px solid #cbd9c3;background:white;color:#60785a;border-radius:18px;padding:7px 11px;font-size:12px;cursor:pointer}
+.inputrow{display:flex;gap:9px;padding:13px;background:white;border-top:1px solid var(--line)}
+input{flex:1;min-width:0;border:1px solid #d8e2d2;border-radius:24px;padding:12px 16px;font-size:14px;outline:none}
+input:focus{border-color:#91ad85}
+button.send{border:0;border-radius:24px;background:var(--green);color:white;padding:0 22px;cursor:pointer}
+button.voice{width:42px;border:0;border-radius:50%;background:#edf3e9;color:#58734f;font-size:17px;cursor:pointer}
+.foot{text-align:center;padding:5px;color:#a1aa9b;font-size:10px;background:white}
+@media(max-width:600px){.app{width:100%;height:100dvh;min-height:0;margin:0;border-radius:0}.wrap{max-width:84%}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="avatar" id="headerAvatar"></div>
+  <div><h1>姜不應的鼠鼠之家</h1><p>住在這裡的一片薑餅人・麻路 CP 愛好者</p></div>
+  <div class="status" id="status">● 正在整理記憶</div>
+</header>
+<main class="chat" id="chat"></main>
+<div class="suggestions">
+  <button onclick="quickAsk('你今天在鼠鼠之家做了什麼？')">你今天在做什麼？</button>
+  <button onclick="quickAsk('路馬娜又偷吃酒心巧克力了嗎？')">酒心巧克力事件</button>
+  <button onclick="quickAsk('麻札到底喜歡誰？')">麻札喜歡誰？</button>
+  <button onclick="quickAsk('你覺得麻路怎麼樣？')">聊聊麻路</button>
+  <button onclick="quickAsk('講個冷笑話')">講個冷笑話</button>
+</div>
+<div class="inputrow">
+  <button class="voice" onclick="startVoice()" title="語音輸入">🎙</button>
+  <input id="input" placeholder="跟姜不應說說話……" autocomplete="off">
+  <button class="send" onclick="send()">送出</button>
+</div>
+<div class="foot">本地 RAG 知識庫版本・不連接外部 AI</div>
+</div>
+
+<script>
+let KB = null;
+let lastTopic = "";
+let history = [];
+let busy = false;
+
+function gingerbreadSVG(){
+ return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="薑餅人頭像">
+ <defs>
+  <linearGradient id="cookie" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#c98a55"/><stop offset="1" stop-color="#9b5d35"/></linearGradient>
+  <linearGradient id="icing" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fffdf0"/><stop offset="1" stop-color="#f1dfbd"/></linearGradient>
+ </defs>
+ <path d="M50 12c-10 0-17 8-16 18-7-7-19-4-20 6-1 8 6 13 14 11l-2 20c-1 14 8 23 24 23s25-9 24-23l-2-20c8 2 15-3 14-11-1-10-13-13-20-6 1-10-6-18-16-18z" fill="url(#cookie)" stroke="#75472d" stroke-width="3"/>
+ <path d="M38 23q12-8 24 0" fill="none" stroke="url(#icing)" stroke-width="5" stroke-linecap="round"/>
+ <path d="M34 41q5-5 10 0M56 41q5-5 10 0" fill="none" stroke="#fff5df" stroke-width="4" stroke-linecap="round"/>
+ <circle cx="40" cy="44" r="3.1" fill="#49352b"/><circle cx="60" cy="44" r="3.1" fill="#49352b"/>
+ <ellipse cx="29" cy="54" rx="6" ry="4" fill="#e99b89" opacity=".85"/><ellipse cx="71" cy="54" rx="6" ry="4" fill="#e99b89" opacity=".85"/>
+ <path d="M43 57q7 8 14 0" fill="none" stroke="#fff1d8" stroke-width="3" stroke-linecap="round"/>
+ <circle cx="50" cy="73" r="4.2" fill="#f6d98f" stroke="#8c5735" stroke-width="1.5"/>
+ <circle cx="50" cy="84" r="3.3" fill="#f6d98f" stroke="#8c5735" stroke-width="1.3"/>
+ <path d="M21 68q-4 7 2 11M79 68q4 7-2 11" fill="none" stroke="#f5dfc1" stroke-width="4" stroke-linecap="round"/>
+ </svg>`;
+}
+
+document.getElementById("headerAvatar").innerHTML=gingerbreadSVG();
+
+async function loadKnowledge(){
+ const status=document.getElementById("status");
+ try{
+   const response=await fetch("./knowledge.json");
+   if(!response.ok) throw new Error("HTTP "+response.status);
+   KB=await response.json();
+   status.textContent="● 記憶載入完成";
+ }catch(error){
+   status.textContent="● 找不到 RAG 檔";
+   status.classList.add("error");
+   addMessage("欸？我的記憶檔 knowledge.json 沒有載入成功。請確認它和 index.html 放在同一個資料夾，並用 VS Code 的 Live Server 開啟，不要直接雙擊 HTML。","bot");
+ }
+}
+
+function addMessage(text,who){
+ const chat=document.getElementById("chat");
+ const row=document.createElement("div"); row.className="msg "+who;
+ const avatar=document.createElement("div"); avatar.className="mini";
+ if(who==="bot") avatar.innerHTML=gingerbreadSVG();
+ else {avatar.classList.add("usericon");avatar.textContent="🙂";}
+ const wrap=document.createElement("div");wrap.className="wrap";
+ const bubble=document.createElement("div");bubble.className="bubble";bubble.textContent=text;
+ const meta=document.createElement("div");meta.className="meta";
+ meta.textContent=new Date().toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit"});
+ wrap.append(bubble,meta);
+ if(who==="bot"){
+   const speak=document.createElement("button");speak.className="speak";speak.textContent="🔊 朗讀";
+   speak.onclick=()=>speakText(text);wrap.append(speak);
+ }
+ row.append(avatar,wrap);chat.append(row);chat.scrollTop=chat.scrollHeight;
+}
+
+function flattenKB(){
+ if(!KB) return [];
+ const groups=["world","characters","relationships","events","preferences_and_facts"];
+ return groups.flatMap(g=>(KB[g]||[]).map(item=>({...item,_group:g})));
+}
+
+function normalize(s){return s.toLowerCase().replace(/[？?！!，。、「」『』：:；;（）()\\s]/g,"");}
+
+function retrieve(question){
+ const q=normalize(question);
+ const scored=[];
+ for(const item of flattenKB()){
+   const terms=[...(item.tags||[]),item.title||"",item.name||"",item.role||"",...(item.aliases||[])].filter(Boolean);
+   let score=0;
+   for(const term of terms){
+     const t=normalize(term);
+     if(t && q.includes(t)) score+=Math.max(2,t.length*1.5);
+   }
+   const content=normalize(item.content||"");
+   if(content && (q.includes("鼠鼠之家") && content.includes("鼠鼠之家"))) score+=2;
+   if(score>0) scored.push({item,score});
+ }
+ return scored.sort((a,b)=>b.score-a.score).slice(0,4).map(x=>x.item);
+}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function has(q,patterns){return patterns.some(p=>q.includes(p));}
+
+function reply(question){
+ const q=normalize(question);
+ const results=retrieve(question);
+
+ // 姜不應先以自己身分回應，不把自己變成資料庫播報員
+ if(has(q,["你是誰","你叫什麼","姜不應是誰","介紹你自己"])){
+   return "我叫姜不應！是一片因 CP 之力而覺醒的薑餅人，也是鼠鼠之家的住戶。平常除了過日子，當然還有一項重要工作——關心麻路的進度。這可是薑餅人的基本修養。";
+ }
+ if(has(q,["你今天","你在做什麼","你做了什麼","你的生活","你平常"])){
+   return "我就在鼠鼠之家活動啊。至於今天嘛……我有在留意大家的動靜，也順便關心一下麻路。你知道的，身為一片有 CP 雷達的薑餅，這是很難避免的職業病。";
+ }
+ if(has(q,["冷笑話","笑話"])){
+   return pick(["為什麼薑餅人不怕迷路？因為身上有薑（將）！……好，這個笑點可能需要發酵。","我最近想去健身，結果教練說我不用練了，因為我已經是餅乾人。","你知道薑餅人最怕什麼嗎？不是烤箱，是有人說要把他泡牛奶。"]);
+ }
+ if(has(q,["路馬娜喜歡吃什麼","酒心巧克力","酒量"])){
+   lastTopic="路馬娜";
+   if(has(q,["酒量","喝酒","醉"])){
+     return "她喜歡酒心巧克力沒錯，但酒量真的不行。這件事我可記得。喜歡吃跟能不能喝是兩回事啊！";
+   }
+   return "路馬娜喜歡酒心巧克力。只是她酒量極差，所以這個喜好偶爾會帶來一些小混亂……咳，我先不把事情講得太誇張。";
+ }
+ if(has(q,["麻札喜歡誰","麻札暗戀誰","麻札喜歡"])){
+   lastTopic="麻札";
+   return "麻札喜歡路馬娜啊！這件事我知道。問題是那傢伙不敢說出口，旁邊的人有時候看了都替他著急。";
+ }
+ if(has(q,["有沒有交往","在一起了嗎","正式交往","情侶嗎"])){
+   lastTopic="麻路";
+   return "我很想直接替他們放煙火，但目前還不能說他們正式交往了。確定的是麻札喜歡路馬娜，只是一直沒敢說出口。至於路馬娜知不知道嘛……這部分我不亂猜。";
+ }
+ if(has(q,["一年前","什麼時候來","來到鼠鼠之家","搬來"])){
+   lastTopic="麻路";
+   return "麻札和路馬娜是一年前一起來到鼠鼠之家的。那之後，大家就在這個生活圈裡一起生活啦。";
+ }
+ if(has(q,["怎麼認識","從小","一起長大","青梅竹馬"])){
+   lastTopic="麻路";
+   return "他們從小就一起長大了。麻札也是陪路馬娜最久的人。這種相處時間可不是短短幾天能比的。";
+ }
+ if(has(q,["父母","爸媽","出生前","羊水"])){
+   lastTopic="麻路";
+   return "我有聽過他們兩家的父母早就認識，甚至有人把時間線開玩笑地推到出生前。不過那種說法比較像傳聞或玩笑，我可不能拿來當正式設定。";
+ }
+ if(has(q,["實驗體","實驗室","實驗"])){
+   lastTopic="麻路";
+   return "他們的過去確實牽涉到實驗體這件事。我也記得有說過麻札可能是為了路馬娜而成為實驗體，但『可能』就是可能，具體過程我不會擅自補完。還有路馬娜過去像另一個人的那段，也還有很多地方沒說清楚。";
+ }
+ if(has(q,["海邊","貝殼","入院紀念日","蛋糕","砂糖蒜","偷吃","院長"])){
+   lastTopic="麻路";
+   const hits=results.map(x=>x.content||x.title).filter(Boolean);
+   if(hits.length) return "喔，這些事情我有印象。"+hits.join("\n");
+ }
+ if(has(q,["特殊眼睛","眼睛能力","眼睛"])){
+   lastTopic="路馬娜";
+   return "路馬娜有特殊眼睛設定，這點是確定的。不過具體能力和原理我現在還沒有完整答案，不能隨便掰一個出來。";
+ }
+ if(has(q,["為什麼","怎麼辦","你覺得"])){
+   if(results.length){
+     lastTopic=results[0].name||results[0].character||lastTopic;
+     return pick([
+       "嗯，我的想法是先把已經確定的部分分清楚，其他還沒說明的就先別急著下結論。",
+       "這件事我有自己的看法，不過我不想把猜測講成真的。已知的部分是："+results.slice(0,2).map(x=>x.content||x.title).join("；"),
+       "唔，這題值得想一下。我目前能確定的是："+results.slice(0,2).map(x=>x.content||x.title).join("；")
+     ]);
+   }
+ }
+ if(results.length){
+   lastTopic=results[0].name||results[0].character||results[0].title||lastTopic;
+   const facts=results.map(x=>x.content||[x.name,x.role,x.age,x.feelings].filter(Boolean).join("；")).filter(Boolean);
+   if(facts.length){
+     return pick([
+       facts.slice(0,3).join("\n"),
+       "喔，這個我知道。"+facts.slice(0,2).join(" "),
+       "我記得的部分是："+facts.slice(0,3).join("；")
+     ]);
+   }
+ }
+ if(has(q,["嗨","你好","哈囉","安安"])){
+   return pick(["喔！你來啦。歡迎來鼠鼠之家坐坐。","嗨嗨！今天想聊點什麼？我這片薑餅目前精神良好。","來啦？我剛好有空，餅乾屑也整理好了。"]);
+ }
+ if(has(q,["謝謝","感謝"])){
+   return "不客氣啦！住在鼠鼠之家，互相幫忙是應該的。";
+ }
+ if(has(q,["難過","傷心","心情不好","不開心"])){
+   return "怎麼啦……先不用急著把心情整理好。你可以慢慢說，我在這裡陪你。今天先不用當很堅強的人，薑餅也有軟掉的時候。";
+ }
+ if(has(q,["麻路","cp","配對"])){
+   return "麻路啊……咳，我當然有在關注！不過我也不會把每件小事都硬湊成證據。喜歡嗑 CP 歸喜歡嗑，還是要分清楚哪些是真的發生過。";
+ }
+ return pick([
+   "嗯，我有聽到。這件事我現在還沒有把握，不想亂講。",
+   "這題我一時答不上來。我的薑餅腦袋不是百科全書，但我可以陪你把話題聊下去。",
+   "喔——我懂你在說什麼方向了。不過這部分我沒有確定的資訊，就先不裝懂。",
+   "我先把這句放在心裡想想。雖然我是一片薑餅，但也有認真思考的時候。"
+ ]);
+}
+
+function send(){
+ const input=document.getElementById("input");
+ const q=input.value.trim();
+ if(!q||busy)return;
+ if(!KB){addMessage("我的記憶還沒載入好，先等一下。","bot");return;}
+ addMessage(q,"user");
+ history.push({role:"user",content:q});
+ input.value="";busy=true;
+ setTimeout(()=>{
+   const answer=reply(q);
+   addMessage(answer,"bot");
+   history.push({role:"assistant",content:answer});
+   if(history.length>24)history=history.slice(-24);
+   busy=false;
+ },280);
+}
+function quickAsk(q){document.getElementById("input").value=q;send();}
+document.getElementById("input").addEventListener("keydown",e=>{if(e.key==="Enter")send();});
+
+function speakText(text){
+ if(!("speechSynthesis" in window)){alert("這個瀏覽器不支援語音朗讀。");return;}
+ speechSynthesis.cancel();
+ const u=new SpeechSynthesisUtterance(text);u.lang="zh-TW";u.rate=1;speechSynthesis.speak(u);
+}
+function startVoice(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){alert("請使用支援語音辨識的 Chrome 或 Edge。");return;}
+ const r=new SR();r.lang="zh-TW";r.interimResults=false;
+ r.onresult=e=>{document.getElementById("input").value=e.results[0][0].transcript;send();};
+ r.onerror=()=>alert("語音辨識失敗，請再試一次。");r.start();
+}
+loadKnowledge().then(()=>{
+ if(KB)addMessage("欸，你來啦！我是姜不應。這裡是鼠鼠之家，我也住在這裡。想聊聊天、吐槽生活，或是……咳，想聊麻路也行。我可不是只會站在旁邊分析大家的薑餅人喔。","bot");
+});
+</script>
+</body>
+</html>
