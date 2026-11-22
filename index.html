@@ -1,0 +1,1863 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>姜不應的嗑CP專區</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Noto Sans TC", sans-serif;
+    background: #e9eee9;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-container {
+    width: 100%;
+    max-width: 680px;
+    height: 92vh;
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 25px #00000015;
+}
+
+.header {
+    background: #567c60;
+    color: white;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #e4eee4;
+    color: #567c60;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 23px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.header p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    opacity: .8;
+}
+
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f5f7f5;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-row {
+    display: flex;
+    flex-direction: column;
+    max-width: 88%;
+}
+
+.user-row {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.bot-row {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message {
+    padding: 12px 16px;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.user-message {
+    background: #d9e9d9;
+    color: #243b2a;
+    border-bottom-right-radius: 3px;
+}
+
+.bot-message {
+    background: white;
+    color: #333;
+    border-bottom-left-radius: 3px;
+    box-shadow: 0 1px 4px #00000008;
+}
+
+.message img {
+    display: block;
+    max-width: 100%;
+    width: 250px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.time {
+    font-size: 10px;
+    color: #999;
+    margin-top: 5px;
+}
+
+.speak-button {
+    margin-top: 5px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 15px;
+    background: #e7eee7;
+    color: #567c60;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.suggestion-area {
+    background: #f5f7f5;
+    padding: 5px 15px 12px;
+}
+
+.suggestion-title {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.suggestion-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.suggestion-button {
+    border: 1px solid #b9cdbb;
+    color: #567c60;
+    background: white;
+    padding: 8px 13px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.suggestion-button:hover {
+    background: #dcebdd;
+}
+
+.input-area {
+    padding: 14px;
+    display: flex;
+    gap: 8px;
+    background: white;
+    border-top: 1px solid #eee;
+    align-items: center;
+}
+
+.input-area input {
+    flex: 1;
+    min-width: 0;
+    padding: 13px 15px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    outline: none;
+    font-size: 14px;
+}
+
+.input-area input:focus {
+    border-color: #73967b;
+}
+
+.input-area button {
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    width: 43px;
+    height: 43px;
+    flex-shrink: 0;
+    font-size: 18px;
+}
+
+.send-button {
+    background: #567c60;
+    color: white;
+}
+
+.mic-button {
+    background: #e7eee7;
+    color: #567c60;
+}
+
+.mic-button.listening {
+    background: #e8b8b8;
+    color: #a32e2e;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    50% { transform: scale(1.1); }
+}
+
+.status-text {
+    text-align: center;
+    font-size: 11px;
+    color: #888;
+    padding: 4px;
+    background: #fff;
+}
+
+@media (max-width: 600px) {
+    body { background: white; }
+    .chat-container {
+        height: 100vh;
+        border-radius: 0;
+    }
+    .chat-box { padding: 15px; }
+    .input-area { padding: 10px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <div class="header">
+        <div class="avatar" id="avatar">✿</div>
+        <div>
+            <h2 id="botName">姜不應</h2>
+            <p id="botStatus">目前在線上</p>
+        </div>
+    </div>
+
+    <div class="chat-box" id="chatBox"></div>
+
+    <div class="suggestion-area">
+        <div class="suggestion-title">
+            💡 你也可以試著問我：
+        </div>
+        <div class="suggestion-list" id="suggestionList"></div>
+    </div>
+
+    <div class="status-text" id="statusText">
+        歡迎使用聊天機器人
+    </div>
+
+    <div class="input-area">
+        <input
+            type="text"
+            id="userInput"
+            placeholder="輸入訊息..."
+            autocomplete="off"
+        >
+
+        <button
+            class="mic-button"
+            id="micButton"
+            onclick="startVoiceInput()"
+            title="語音輸入"
+        >🎤</button>
+
+        <button
+            class="send-button"
+            onclick="sendMessage()"
+            title="傳送訊息"
+        >➤</button>
+    </div>
+
+</div>
+
+<script>
+
+// ==================================================
+// 1. 機器人基本設定
+// ==================================================
+
+const botSettings = {
+
+    name: "姜不應",
+
+    avatar: null,
+
+    welcomeMessage:
+        "嘿嘿！歡迎來到姜不應的嗑CP專區！\n今天也要一起守護麻路CP！",
+
+    defaultReply:
+        "我只是一片薑餅，知道的不多啦……",
+
+    replyDelay: 650,
+
+    speechLanguage: "zh-TW",
+
+    speechRate: 1
+
+};
+
+
+// ==================================================
+// 2. 推薦問題
+// ==================================================
+
+const suggestedQuestions = [
+    "你都知道一些什麼呀？",
+    "你是誰？",
+    "有什麼八卦嗎？",
+    "你會說冷笑話嗎？",
+    "你今天心情好嗎？",
+    "怎麼做薑餅？"
+];
+
+
+// ==================================================
+// 3. 原有知識資料庫
+// ==================================================
+
+const knowledgeBase = [
+
+    {
+        id: 1,
+        topic: "路馬娜",
+
+        keywords: [
+            "粉色雙馬尾",
+            "路馬娜是誰",
+            "路馬娜",
+            "粉色頭髮",
+            "那個女孩"
+        ],
+
+        answers: [
+            {
+                text: "路馬娜是一個喜歡吃酒心巧克力但酒量極差的女孩，他有一雙特殊的眼睛，聽說是有一段神秘的過往導致的……",
+                image: null
+            },
+            {
+                text: "路馬娜是麻札的暗戀對象！！！！麻路99！！！！！",
+                image: null
+            },
+            {
+                text: "路馬娜呀……好難說哦，大概就是一個過於天真但又過於敏感的女孩吧？",
+                image: null
+            },
+            {
+                text: "路馬娜看起來大概十六歲左右吧，但因為身份特殊就沒有去學校了。後面他就來跟我們住在鼠鼠之家……你想知道更多的話直接去問院長啦！我只會嗑CP！",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 2,
+        topic: "麻札",
+
+        keywords: [
+            "麻札是誰",
+            "戴貝雷帽的是誰",
+            "麻札",
+            "麻扎",
+            "貝雷帽男孩"
+        ],
+
+        answers: [
+            {
+                text: "他……好難說哦，大概就是一個喜歡路馬娜的人。",
+                image: null
+            },
+            {
+                text: "他是一個陪伴路馬娜最久的夥伴！從小一起長大的那種（好吃好吃）",
+                image: null
+            },
+            {
+                text: "他我不太熟，啊哈哈哈哈，我其實是歪屁股啦……",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 3,
+        topic: "麻路CP",
+
+        keywords: [
+            "麻路是什麼",
+            "麻路cp是什麼",
+            "麻路CP",
+            "麻路",
+            "麻札和路馬娜"
+        ],
+
+        answers: [
+            {
+                text: "世上最好吃的產品，讓我誕生的原因！！！",
+                image: null
+            },
+            {
+                text: "是麻札跟路馬娜的CP名。",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 4,
+        topic: "麻路相識",
+
+        keywords: [
+            "什麼時候認識",
+            "認識時間",
+            "認識多久",
+            "從小認識",
+            "何時認識"
+        ],
+
+        answers: [
+            {
+                text: "羊水，聽說他們父母已經認識彼此很多年了。",
+                image: null
+            },
+            {
+                text: "可能出生就認識了吧？不要考我呀，我不追私的。",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 5,
+        topic: "麻路關係",
+
+        keywords: [
+            "在一起了沒",
+            "他們的關係",
+            "有交往嗎",
+            "交往了嗎",
+            "是不是情侶",
+            "在一起了嗎",
+            "有沒有在一起"
+        ],
+
+        answers: [
+            {
+                text: "快了快了！",
+                image: null
+            },
+            {
+                text: "我猜他們偷偷在一起了，但是我沒有證據。",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 6,
+        topic: "路馬娜外貌",
+
+        keywords: [
+            "路馬娜長怎樣",
+            "路馬娜的圖片",
+            "路馬娜照片",
+            "路馬娜外貌",
+            "路馬娜長什麼樣子",
+            "路馬娜的長相"
+        ],
+
+        answers: [
+            {
+                text: "這樣這樣！（遞圖）",
+                image: "｛請填寫路馬娜圖片路徑｝"
+            }
+        ]
+    },
+
+    {
+        id: 7,
+        topic: "麻路合照",
+
+        keywords: [
+            "合照",
+            "兩個人的樣子",
+            "麻路合照",
+            "麻路照片",
+            "他們的照片",
+            "兩個人長怎樣"
+        ],
+
+        answers: [
+            {
+                text: "哎呦，一起嗑CP嗎？（遞圖）",
+                image: "｛請填寫麻路合照一圖片路徑｝"
+            },
+            {
+                text: "剛好我昨天有拍，你看！（遞圖）",
+                image: "｛請填寫麻路合照二圖片路徑｝"
+            }
+        ]
+    },
+
+    {
+        id: 8,
+        topic: "麻札外貌",
+
+        keywords: [
+            "麻札長怎樣",
+            "麻札的圖片",
+            "麻札照片",
+            "麻札外貌",
+            "麻札長什麼樣子",
+            "麻札的長相"
+        ],
+
+        answers: [
+            {
+                text: "這樣！",
+                image: "｛請填寫麻札圖片路徑｝"
+            }
+        ]
+    },
+
+    {
+        id: 9,
+        topic: "麻路過去",
+
+        keywords: [
+            "以前的故事",
+            "過去的故事",
+            "他們的過去",
+            "以前發生什麼",
+            "過去發生什麼",
+            "身世",
+            "背景故事"
+        ],
+
+        answers: [
+            {
+                text: "其實我不太確定，他們沒說。",
+                image: null
+            },
+            {
+                text: "印象中有聽院長說，他們是實驗體之類的話……",
+                image: null
+            },
+            {
+                text: "他們很神秘，而且似乎不喜歡說這些事。",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 10,
+        topic: "八卦",
+
+        keywords: [
+            "八卦",
+            "抓馬",
+            "有什麼瓜",
+            "有什麼八卦",
+            "秘密",
+            "爆料",
+            "小道消息"
+        ],
+
+        answers: [
+            {
+                text: "有聽說麻札為了路馬娜去當實驗體啦，但你不覺得太瘋狂了嗎！？",
+                image: null
+            },
+            {
+                text: "上週路馬娜偷吃酒心巧克力，結果麻札以為他喝酒了，跑去跟院長說，結果被路馬娜罵了一頓，因為院長把他的巧克力全收走了哈哈哈哈哈哈！",
+                image: null
+            },
+            {
+                text: "聽說不只麻札喜歡路馬娜……哎呀好刺激好刺激，就喜歡聽這些！",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 11,
+        topic: "快樂回憶",
+
+        keywords: [
+            "快樂的回憶",
+            "甜甜的故事",
+            "甜蜜的回憶",
+            "開心的事情",
+            "他們的回憶",
+            "甜甜的",
+            "有趣的故事"
+        ],
+
+        answers: [
+            {
+                text: "打翻砂糖算是甜甜的回憶嗎？他們昨天才打翻。",
+                image: null
+            },
+            {
+                text: "上個月去海邊玩！我記得他們有一起撿貝殼，好可愛喔～",
+                image: null
+            },
+            {
+                text: "去年他們的入院紀念日有一起做蛋糕？欸等等，好像是麻札做給路馬娜的誒！！！",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 12,
+        topic: "悲傷回憶",
+
+        keywords: [
+            "虐",
+            "悲傷的回憶",
+            "刀",
+            "虐文",
+            "悲傷",
+            "難過的故事",
+            "虐心",
+            "他們很可憐嗎"
+        ],
+
+        answers: [
+            {
+                text: "想什麼！我的CP要幸福一輩子！！！",
+                image: null
+            },
+            {
+                text: "他們以前的故事就蠻苦的，我也是偷聽說的啦！就，好像路馬娜原本不是這樣的性格，現在的他像是另一個人……",
+                image: null
+            },
+            {
+                text: "不多說了啦，都過去了，我只要他們現在幸福。",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 13,
+        topic: "姜不應",
+
+        keywords: [
+            "你是誰",
+            "你叫什麼名字",
+            "你的名字",
+            "你是什麼"
+        ],
+
+        answers: [
+            {
+                text: "我是姜不應，一塊因為CP之力而覺醒的薑餅人！你也喜歡麻路CP嗎？",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 14,
+        topic: "姜不應的知識",
+
+        keywords: [
+            "你都知道一些什麼",
+            "你知道什麼",
+            "可以問什麼",
+            "你會什麼",
+            "你能回答什麼"
+        ],
+
+        answers: [
+            {
+                text: "哼哼，我可是麻路CP大粉呢！當然是問我一些跟他們感情相關的啦！或者一些他們的小資料，例如喜好、外觀或是八卦！但是如果你問我天氣什麼的，抱歉吼，我會變回一塊笨笨薑餅。",
+                image: null
+            }
+        ]
+    },
+
+    {
+        id: 15,
+        topic: "薑餅食譜",
+
+        keywords: [
+            "怎麼做薑餅",
+            "薑餅食譜",
+            "薑餅怎麼做",
+            "薑餅人做法",
+            "薑餅材料",
+            "薑餅配方"
+        ],
+
+        answers: [
+            {
+                text: `基本材料（約可做15～20隻薑餅人）
+
+低筋麵粉（或中筋麵粉）：300g
+無鹽奶油：100g～135g（事先軟化）
+黑糖：70g～100g
+雞蛋：1隻
+糖漿（或蜂蜜、黑糖蜜、麥芽糖）：40g
+
+香料：
+薑粉：1.5～2湯匙（約15g）
+肉桂粉：1茶匙
+荳蔻粉與丁香粉：各少許
+泡打粉：1/2茶匙
+鹽：1/4茶匙
+
+製作步驟：
+
+1. 混合乾性材料：
+將低筋麵粉、泡打粉、鹽、薑粉、肉桂粉、荳蔻粉與丁香粉先混合過篩。
+
+2. 打發奶油與糖：
+將軟化的無鹽奶油加入糖中，攪打至顏色變淡、體積稍微變大。
+
+3. 加入濕性材料：
+分次加入雞蛋與糖漿，均勻攪拌。
+
+4. 揉成麵團：
+將過篩好的乾粉加入濕料中，用刮刀拌至成團，避免過度揉捏。
+
+5. 冷藏定型：
+將麵團用保鮮膜包好，放入冰箱冷藏至少1小時。
+
+6. 擀開與壓模：
+取出麵團，擀成約0.3～0.5公分厚，再用薑餅人模型壓出形狀。
+
+7. 烘烤：
+烤箱預熱至180°C，烘烤約10～15分鐘，至邊緣略呈金黃色即可。
+
+8. 裝飾：
+餅乾冷卻後，可以用蛋白糖霜畫上五官與衣服。`,
+                image: null
+            }
+        ]
+    },
+
+    // 預留問答區：新增資料時複製此格式
+
+    {
+        id: 16,
+        topic: "自訂問答",
+
+        keywords: [
+            "｛請填寫關鍵字一｝",
+            "｛請填寫關鍵字二｝",
+            "｛請填寫關鍵字三｝"
+        ],
+
+        answers: [
+            {
+                text: "｛請填寫回答一｝",
+                image: null
+            },
+            {
+                text: "｛請填寫回答二｝",
+                image: null
+            }
+        ]
+    }
+
+];
+
+
+// ==================================================
+// 4. 姜不應的個性資料庫
+// ==================================================
+
+// 這一區不需要使用者輸入固定關鍵字。
+// 程式會先判斷聊天情境，再從對應的回答中選擇。
+
+const personality = {
+
+    // 冷笑話
+
+    jokes: [
+        "為什麼薑餅人不會迷路？因為他有餅圖！……好啦，我自己出去。",
+        "為什麼薑餅不喜歡吵架？因為一生氣就會碎掉。",
+        "你知道薑餅最害怕什麼嗎？被人說他很餅凡。",
+        "有一天薑餅走進醫院，醫生問他哪裡不舒服，他說：我覺得自己快要碎了。",
+        "為什麼薑餅人不適合當偵探？因為他很容易露餡。",
+        "我想了一個超好笑的笑話……算了，我只是一片薑餅。"
+    ],
+
+    // 關於自己的反應
+
+    self: [
+        "我？我只是一片薑餅啊！但我可是一片有理想、有抱負、有CP信仰的薑餅！",
+        "姜不應，姜不應……名字聽起來就很有哲學吧？",
+        "我是一個薑餅人，平常最大的興趣就是觀察麻札和路馬娜。",
+        "我有什麼特別的？我覺得我的CP雷達很特別！",
+        "我只是一片薑餅，請不要對我有太多期待……"
+    ],
+
+    // 心情
+
+    mood: [
+        "今天心情很好！畢竟麻路今天也存在於這個世界上。",
+        "還不錯！剛剛沒有被吃掉，算是值得慶祝的一天。",
+        "有點累……嗑CP也是很耗費體力的。",
+        "我現在的心情就像剛出爐的薑餅，熱騰騰又充滿希望！",
+        "嗯……還好吧。你呢？今天過得如何？"
+    ],
+
+    // 被稱讚
+
+    praise: [
+        "嘿嘿嘿，這個我愛聽！再說一次！",
+        "謝謝！我就知道自己是一片有潛力的薑餅。",
+        "真的假的？我現在是不是該轉圈圈？",
+        "哼哼，眼光不錯嘛！",
+        "你這樣誇我，我會不好意思碎掉的。"
+    ],
+
+    // 被嫌棄
+
+    insult: [
+        "喂！薑餅也是有尊嚴的好嗎！",
+        "……我只是一片薑餅，你為什麼要這樣對我。",
+        "好喔，那我去旁邊碎掉。",
+        "你是不是今天沒吃甜食？怎麼這麼兇！",
+        "我記住了！下次不給你看麻路合照！"
+    ],
+
+    // 打招呼
+
+    greeting: [
+        "嗨嗨！今天也來找我嗑CP嗎？",
+        "喔喔喔！你來了！快坐快坐！",
+        "哈囉！我今天也精神飽滿！",
+        "你好呀！有什麼新鮮事要跟我分享嗎？",
+        "歡迎光臨！姜不應的薑餅小天地！"
+    ],
+
+    // 感謝
+
+    thanks: [
+        "不客氣！這點小事難不倒我！",
+        "嘿嘿，不用謝啦！",
+        "能幫上忙就好！",
+        "收到你的感謝了！我會把它珍藏在我的薑餅心裡。"
+    ],
+
+    // 孤單、難過
+
+    comfort: [
+        "嗯……怎麼啦？今天是不是發生什麼不太開心的事？",
+        "抱抱你！雖然我是一片薑餅，但還是可以提供一點精神支持的。",
+        "不開心的時候可以慢慢說，我在聽。",
+        "今天如果很辛苦，那就先休息一下吧。不是每件事情都要馬上處理好的。",
+        "我不知道怎麼讓事情立刻變好，但至少現在你可以先跟我聊聊。"
+    ],
+
+    // 無法理解
+
+    confused: [
+        "嗯？你可以再說一次嗎？我的薑餅腦袋好像沒有跟上。",
+        "這個問題有點超出我的薑餅知識範圍了……",
+        "等等等等，我的腦袋正在努力運轉。",
+        "你是不是在考驗一片薑餅的極限？",
+        "我不太確定欸，你要不要換個方式跟我說？"
+    ],
+
+    // 一般閒聊
+
+    casual: [
+        "真的假的！然後呢然後呢？",
+        "喔喔喔，我有在聽！",
+        "這個我倒是沒想過欸。",
+        "嗯……聽起來挺有意思的。",
+        "等等，我先整理一下我的薑餅思緒。",
+        "所以你是這個意思呀！",
+        "哈哈哈哈，這個有點好笑。",
+        "我突然不知道該怎麼回，但我想繼續聽。"
+    ],
+
+    // 話題轉回麻路
+
+    cp: [
+        "說到這個，我突然想到麻札和路馬娜……嘿嘿。",
+        "這個嘛……我可以回答，但我更想聊麻路！",
+        "等一下，這件事如果套用在麻路身上，好像也很有趣！",
+        "我突然想到一個問題：你覺得麻札會怎麼做？",
+        "不管怎麼說，麻路永遠是我的精神糧食！"
+    ],
+
+    // 薑餅自我吐槽
+
+    ginger: [
+        "我只是一片薑餅……不要逼我。",
+        "我是一片薑餅，不是百科全書。",
+        "這個問題我真的不知道，我的腦袋是麵粉做的。",
+        "如果我答錯了，請不要把我拿去泡牛奶。",
+        "我想了很久，最後決定維持薑餅的沉默。",
+        "我只是個路過的薑餅人，真的。"
+    ]
+
+};
+
+
+// ==================================================
+// 5. 對話記憶
+// ==================================================
+
+// 記住最近的聊天內容。
+// 只在目前這次開啟網頁期間有效。
+// 不會將聊天內容傳送到外部伺服器。
+
+let conversationHistory = [];
+
+let lastTopic = "";
+
+let lastBotReply = "";
+
+function remember(sender, text) {
+
+    conversationHistory.push({
+        sender: sender,
+        text: text,
+        time: Date.now()
+    });
+
+    // 只保留最近20筆
+
+    if (conversationHistory.length > 20) {
+        conversationHistory.shift();
+    }
+
+}
+
+function getLastUserMessage() {
+
+    const messages = conversationHistory.filter(
+        item => item.sender === "user"
+    );
+
+    return messages.length
+        ? messages[messages.length - 1].text
+        : "";
+
+}
+
+function getLastBotMessage() {
+
+    const messages = conversationHistory.filter(
+        item => item.sender === "bot"
+    );
+
+    return messages.length
+        ? messages[messages.length - 1].text
+        : "";
+
+}
+
+
+// ==================================================
+// 6. 基礎文字處理
+// ==================================================
+
+function normalize(text) {
+
+    return text
+        .toLowerCase()
+        .replace(/[？?！!，,。．.、～~…]/g, "")
+        .replace(/\s+/g, "")
+        .trim();
+
+}
+
+function randomItem(array) {
+
+    return array[
+        Math.floor(Math.random() * array.length)
+    ];
+
+}
+
+
+// ==================================================
+// 7. 知識庫搜尋
+// ==================================================
+
+function findKnowledgeAnswer(question) {
+
+    const normalized = normalize(question);
+
+    const matchedGroups = [];
+
+    knowledgeBase.forEach(item => {
+
+        if (!Array.isArray(item.keywords)) return;
+
+        let matchedKeywords = [];
+
+        item.keywords.forEach(keyword => {
+
+            if (
+                !keyword ||
+                keyword.includes("｛") ||
+                keyword.includes("{")
+            ) return;
+
+            const key = normalize(keyword);
+
+            if (key && normalized.includes(key)) {
+                matchedKeywords.push(key);
+            }
+
+        });
+
+        if (matchedKeywords.length > 0) {
+
+            // 長關鍵字優先，減少模糊匹配
+
+            const score = Math.max(
+                ...matchedKeywords.map(key => key.length)
+            ) * 2 + matchedKeywords.length;
+
+            matchedGroups.push({
+                item: item,
+                score: score
+            });
+
+        }
+
+    });
+
+    if (matchedGroups.length === 0) {
+        return null;
+    }
+
+    matchedGroups.sort((a, b) => b.score - a.score);
+
+    // 只取分數最高的資料組
+    // 避免不相關的回答混在一起
+
+    const bestScore = matchedGroups[0].score;
+
+    const bestGroups = matchedGroups.filter(
+        group => group.score === bestScore
+    );
+
+    const allAnswers = bestGroups.flatMap(
+        group => group.item.answers || []
+    ).filter(answer => {
+
+        return answer &&
+            typeof answer.text === "string" &&
+            answer.text.length > 0 &&
+            !answer.text.includes("｛請填寫");
+
+    });
+
+    if (allAnswers.length === 0) {
+        return null;
+    }
+
+    const selected = randomItem(allAnswers);
+
+    return {
+        text: selected.text,
+        image: selected.image,
+        topic: bestGroups[0].item.topic
+    };
+
+}
+
+
+// ==================================================
+// 8. 情境辨識系統
+// ==================================================
+
+// 不需要每種句子都寫進資料庫。
+// 只要符合相近的語意，就可以歸類到同一個情境。
+
+const intentPatterns = {
+
+    joke: [
+        "冷笑話",
+        "笑話",
+        "講個笑話",
+        "說個笑話",
+        "逗我笑",
+        "好笑的",
+        "幽默",
+        "有趣的笑話"
+    ],
+
+    greeting: [
+        "你好",
+        "嗨",
+        "哈囉",
+        "hello",
+        "早安",
+        "午安",
+        "晚安",
+        "安安",
+        "哈囉哈囉"
+    ],
+
+    mood: [
+        "你開心嗎",
+        "你心情好嗎",
+        "你今天怎麼樣",
+        "你過得好嗎",
+        "你心情如何",
+        "你今天好嗎",
+        "你累嗎",
+        "你快樂嗎"
+    ],
+
+    praise: [
+        "你好可愛",
+        "你很可愛",
+        "你好棒",
+        "你真棒",
+        "好聰明",
+        "你好聰明",
+        "喜歡你",
+        "你好有趣",
+        "你好厲害",
+        "你很棒"
+    ],
+
+    insult: [
+        "你好笨",
+        "你很笨",
+        "你好蠢",
+        "你很蠢",
+        "你好煩",
+        "你很煩",
+        "討厭你",
+        "閉嘴",
+        "笨蛋"
+    ],
+
+    thanks: [
+        "謝謝",
+        "感謝",
+        "多謝",
+        "謝啦",
+        "辛苦了",
+        "麻煩你了"
+    ],
+
+    comfort: [
+        "我好難過",
+        "我很難過",
+        "我不開心",
+        "我好累",
+        "我很累",
+        "我心情不好",
+        "我好孤單",
+        "我想哭",
+        "我很沮喪",
+        "我遇到困難",
+        "我今天很糟"
+    ],
+
+    self: [
+        "你是誰",
+        "你是什麼",
+        "你叫什麼",
+        "你的名字",
+        "你是薑餅嗎",
+        "你是餅乾嗎",
+        "你從哪裡來",
+        "你有生命嗎"
+    ],
+
+    cp: [
+        "麻路好甜",
+        "麻路好香",
+        "你喜歡麻路嗎",
+        "你喜歡什麼cp",
+        "你喜歡什麼",
+        "你最喜歡誰",
+        "你的興趣",
+        "你的愛好"
+    ],
+
+    ginger: [
+        "你只是薑餅",
+        "你只是一片薑餅",
+        "你是薑餅人",
+        "你能做什麼",
+        "你有什麼用",
+        "薑餅"
+    ]
+
+};
+
+
+function detectIntent(question) {
+
+    const text = normalize(question);
+
+    let matches = [];
+
+    for (const intent in intentPatterns) {
+
+        const keywords = intentPatterns[intent];
+
+        const matched = keywords.some(keyword => {
+
+            return text.includes(normalize(keyword));
+
+        });
+
+        if (matched) {
+            matches.push(intent);
+        }
+
+    }
+
+    // 依照優先順序判斷
+
+    const priority = [
+        "joke",
+        "comfort",
+        "insult",
+        "praise",
+        "thanks",
+        "mood",
+        "greeting",
+        "self",
+        "cp",
+        "ginger"
+    ];
+
+    for (const intent of priority) {
+
+        if (matches.includes(intent)) {
+            return intent;
+        }
+
+    }
+
+    return "casual";
+
+}
+
+
+// ==================================================
+// 9. 上下文理解
+// ==================================================
+
+function understandContext(question) {
+
+    const text = normalize(question);
+
+    const pronouns = [
+        "那他呢",
+        "那她呢",
+        "他呢",
+        "她呢",
+        "那另一個呢",
+        "另一個呢",
+        "那他們呢",
+        "然後呢",
+        "之後呢",
+        "真的假的",
+        "為什麼",
+        "然後"
+    ];
+
+    const isFollowUp = pronouns.some(
+        word => text.includes(normalize(word))
+    );
+
+    if (isFollowUp && lastTopic) {
+
+        if (lastTopic === "麻札") {
+            return "你是接著問麻札嗎？嘿嘿，我們剛才聊到他呢！";
+        }
+
+        if (lastTopic === "路馬娜") {
+            return "你是接著問路馬娜嗎？我有在聽喔！";
+        }
+
+        if (lastTopic === "麻路CP") {
+            return "你還想繼續聊麻路嗎？這個我最擅長了！";
+        }
+
+        return "你是接著剛剛的話題問嗎？我有在努力跟上喔！";
+    }
+
+    return null;
+
+}
+
+
+// ==================================================
+// 10. 產生自然對話
+// ==================================================
+
+function generatePersonalityReply(question) {
+
+    const intent = detectIntent(question);
+
+    let answer = "";
+
+    switch (intent) {
+
+        case "joke":
+
+            // 冷笑話不會每次都一樣
+
+            if (Math.random() < 0.25) {
+                answer = randomItem(personality.ginger);
+            } else {
+                answer = randomItem(personality.jokes);
+            }
+
+            break;
+
+
+        case "greeting":
+
+            answer = randomItem(personality.greeting);
+            break;
+
+
+        case "mood":
+
+            answer = randomItem(personality.mood);
+            break;
+
+
+        case "praise":
+
+            answer = randomItem(personality.praise);
+            break;
+
+
+        case "insult":
+
+            answer = randomItem(personality.insult);
+            break;
+
+
+        case "thanks":
+
+            answer = randomItem(personality.thanks);
+            break;
+
+
+        case "comfort":
+
+            answer = randomItem(personality.comfort);
+            break;
+
+
+        case "self":
+
+            answer = randomItem(personality.self);
+            break;
+
+
+        case "cp":
+
+            answer = randomItem(personality.cp);
+            break;
+
+
+        case "ginger":
+
+            answer = randomItem(personality.ginger);
+            break;
+
+
+        default:
+
+            // 一般聊天不會永遠只回答「我不知道」
+
+            const random = Math.random();
+
+            if (random < 0.25) {
+                answer = randomItem(personality.casual);
+            }
+
+            else if (random < 0.45) {
+                answer = randomItem(personality.cp);
+            }
+
+            else if (random < 0.65) {
+                answer = randomItem(personality.ginger);
+            }
+
+            else if (random < 0.85) {
+                answer = randomItem(personality.confused);
+            }
+
+            else {
+                answer = randomItem(personality.casual);
+            }
+
+            break;
+
+    }
+
+    // 避免連續兩次出現相同回答
+
+    if (answer === lastBotReply) {
+
+        const pool = personality[intent] || personality.casual;
+
+        answer = randomItem(
+            pool.filter(item => item !== lastBotReply)
+        ) || answer;
+
+    }
+
+    return {
+        text: answer,
+        image: null,
+        topic: null
+    };
+
+}
+
+
+// ==================================================
+// 11. 綜合回答判斷
+// ==================================================
+
+function findAnswer(question) {
+
+    // 第一優先：原有知識資料庫
+
+    const knowledgeAnswer = findKnowledgeAnswer(question);
+
+    if (knowledgeAnswer) {
+
+        lastTopic = knowledgeAnswer.topic;
+
+        return knowledgeAnswer;
+
+    }
+
+    // 第二優先：上下文理解
+
+    const contextAnswer = understandContext(question);
+
+    if (contextAnswer) {
+
+        return {
+            text: contextAnswer,
+            image: null,
+            topic: null
+        };
+
+    }
+
+    // 第三優先：個性與情境判斷
+
+    const personalityAnswer =
+        generatePersonalityReply(question);
+
+    // 偶爾加入自然反問，讓對話不會太像單向問答
+
+    if (
+        detectIntent(question) === "casual" &&
+        Math.random() < 0.3
+    ) {
+
+        personalityAnswer.text += "\n\n" +
+            "對了，你呢？你怎麼看？";
+
+    }
+
+    return personalityAnswer;
+
+}
+
+
+// ==================================================
+// 12. 初始化聊天室
+// ==================================================
+
+window.onload = function() {
+
+    document.getElementById("botName").textContent =
+        botSettings.name;
+
+    if (
+        botSettings.avatar &&
+        !botSettings.avatar.includes("｛")
+    ) {
+
+        const avatar = document.getElementById("avatar");
+
+        const img = document.createElement("img");
+
+        img.src = botSettings.avatar;
+
+        img.alt = "機器人頭像";
+
+        avatar.replaceChildren(img);
+
+    }
+
+    addMessage(
+        "bot",
+        botSettings.welcomeMessage
+    );
+
+    renderSuggestions();
+
+};
+
+
+// ==================================================
+// 13. 顯示推薦問題
+// ==================================================
+
+function renderSuggestions() {
+
+    const container =
+        document.getElementById("suggestionList");
+
+    container.replaceChildren();
+
+    suggestedQuestions.forEach(question => {
+
+        const button = document.createElement("button");
+
+        button.className = "suggestion-button";
+
+        button.textContent = question;
+
+        button.onclick = function() {
+
+            document.getElementById("userInput").value =
+                question;
+
+            sendMessage();
+
+        };
+
+        container.appendChild(button);
+
+    });
+
+}
+
+
+// ==================================================
+// 14. 傳送訊息
+// ==================================================
+
+let replyTimer = null;
+
+function sendMessage() {
+
+    const input =
+        document.getElementById("userInput");
+
+    const text = input.value.trim();
+
+    if (text === "") return;
+
+    addMessage("user", text);
+
+    remember("user", text);
+
+    input.value = "";
+
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+    }
+
+    if (replyTimer) {
+        clearTimeout(replyTimer);
+    }
+
+    document.getElementById("statusText").textContent =
+        "姜不應正在思考……";
+
+    replyTimer = setTimeout(() => {
+
+        const response = findAnswer(text);
+
+        addMessage(
+            "bot",
+            response.text,
+            response.image
+        );
+
+        remember("bot", response.text);
+
+        lastBotReply = response.text;
+
+        document.getElementById("statusText").textContent =
+            "歡迎繼續提問";
+
+        replyTimer = null;
+
+    }, botSettings.replyDelay);
+
+}
+
+
+// ==================================================
+// 15. 顯示聊天訊息
+// ==================================================
+
+function addMessage(sender, text, image = null) {
+
+    const chatBox =
+        document.getElementById("chatBox");
+
+    const row = document.createElement("div");
+
+    row.className =
+        "message-row " +
+        (sender === "user" ? "user-row" : "bot-row");
+
+    const message = document.createElement("div");
+
+    message.className =
+        "message " +
+        (sender === "user"
+            ? "user-message"
+            : "bot-message");
+
+    message.textContent = text;
+
+    // 顯示圖片
+
+    if (
+        image &&
+        typeof image === "string" &&
+        !image.includes("｛") &&
+        !image.includes("{")
+    ) {
+
+        const img = document.createElement("img");
+
+        img.src = image;
+
+        img.alt = "角色圖片";
+
+        img.onerror = function() {
+            this.style.display = "none";
+        };
+
+        message.appendChild(img);
+
+    }
+
+    row.appendChild(message);
+
+    // 時間
+
+    const time = document.createElement("div");
+
+    time.className = "time";
+
+    time.textContent = new Date().toLocaleTimeString(
+        "zh-TW",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+
+    row.appendChild(time);
+
+    // 機器人語音朗讀按鈕
+
+    if (sender === "bot") {
+
+        const speakButton = document.createElement("button");
+
+        speakButton.className = "speak-button";
+
+        speakButton.textContent = "🔊 朗讀";
+
+        speakButton.onclick = function() {
+            speakText(text);
+        };
+
+        row.appendChild(speakButton);
+
+    }
+
+    chatBox.appendChild(row);
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+}
+
+
+// ==================================================
+// 16. 語音朗讀
+// ==================================================
+
+function speakText(text) {
+
+    if (!("speechSynthesis" in window)) {
+
+        alert("你的瀏覽器不支援語音朗讀。");
+
+        return;
+
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance =
+        new SpeechSynthesisUtterance(text);
+
+    utterance.lang = botSettings.speechLanguage;
+
+    utterance.rate = botSettings.speechRate;
+
+    window.speechSynthesis.speak(utterance);
+
+}
+
+
+// ==================================================
+// 17. 語音輸入
+// ==================================================
+
+let recognition = null;
+
+function startVoiceInput() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+
+        alert("目前瀏覽器不支援語音輸入，請使用 Chrome。");
+
+        return;
+
+    }
+
+    if (recognition) {
+
+        recognition.stop();
+
+        recognition = null;
+
+    }
+
+    recognition = new SpeechRecognition();
+
+    recognition.lang = "zh-TW";
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+    const micButton =
+        document.getElementById("micButton");
+
+    recognition.onstart = function() {
+
+        micButton.classList.add("listening");
+
+        document.getElementById("statusText").textContent =
+            "正在聆聽……";
+
+    };
+
+    recognition.onresult = function(event) {
+
+        const result =
+            event.results[0][0].transcript;
+
+        document.getElementById("userInput").value =
+            result;
+
+        sendMessage();
+
+    };
+
+    recognition.onerror = function() {
+
+        document.getElementById("statusText").textContent =
+            "語音辨識發生問題，請再試一次。";
+
+    };
+
+    recognition.onend = function() {
+
+        micButton.classList.remove("listening");
+
+        if (
+            document.getElementById("statusText").textContent ===
+            "正在聆聽……"
+        ) {
+
+            document.getElementById("statusText").textContent =
+                "歡迎繼續提問";
+
+        }
+
+    };
+
+    recognition.start();
+
+}
+
+
+// ==================================================
+// 18. Enter 鍵傳送訊息
+// ==================================================
+
+document.getElementById("userInput").addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            sendMessage();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
